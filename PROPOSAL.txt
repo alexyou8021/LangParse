@@ -1,8 +1,4 @@
-Team members:
-
-
-
-
+Team Members: Rohit Bhatta, Matthew Prost, Alex You
 
 Proposal:
-
+We plan to add a feature to the fun language that will enable one to define a class. Using that definition, we should be able to interpret and implement that class. We also aim to be able to create instances of that class. Classes will be able to have 0 or more constructors with different numbers of parameters, any number of uniquely named instance variables, and methods with any number of parameters.
