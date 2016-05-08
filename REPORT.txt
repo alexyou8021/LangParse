@@ -1,5 +1,7 @@
 Contribution of each team member:
-
+Rohit:
+Matt:
+Alex:
 
 
 What did you propose to do?
@@ -26,6 +28,14 @@ class className {
     }
 }
 
+Classes are initialized in the format of:
+ class = new className(<Parameters>);
+and
+
+Restrictions: the instances, if any, must come before the constructors, if any,
+which must come before the functions, if any, within a class definition. All
+previous restrictions of the fun language still hold with regards to naming and
+syntax.
 
 What was difficult?
 
@@ -33,7 +43,10 @@ It was difficult to modify an existing interface to fit a very different need.
 The parser essentially had to process the classes while it was processing the
 functions, even though the functions were returned separately from the classes.
 This meant that our solution was not as elegant in order to add this extra
-functionality.
+functionality. This showed us that it is sometimes difficult to retrofit an
+interface for something that it was not originally intended to do without
+changing a lot of existing code or coming up with a solution that may not
+necessarily be elegant.
 
 
 What did you learn?

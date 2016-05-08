@@ -1,3 +1,29 @@
 Please include clear and simple instructions for running your project.
+All tests are created in .fun files and implement the fun language as defined
+earlier in the year.
+The expected output is found in .ok files which are compared to .out files when
+the tests are run, and the result is displayed in .diff files.
+We implemented classes so that they could be defined with the following format:
+class className {
+    //Any instance variables
+    x;
+    y = 1
+    //Any constructors
+    className() {
+    }
+    //Any functions
+    fun functionName() {
+    }
+}
+Restrictions: the instances, if any, must come before the constructors, if any,
+which must come before the functions, if any, within a class definition. All
+previous restrictions of the fun language still hold with regards to naming and
+syntax.
+
+Classes are initialized in the format of:
+ class = new className(<Parameters>);
+and
 
 Explain why your supplied tests illustrate that your project works
+
+
