@@ -833,7 +833,6 @@ static Instance *instance(char *id) {
 static Instances *instances(char *id) {
     Instances *p = 0;
     //p->n = 0;
-
     if (isId()) {
         p = NEW(Instances);
 
@@ -846,9 +845,9 @@ static Instances *instances(char *id) {
         if (strncmp(str, id, len) == 0 || strncmp(str, "fun", len)==0) {
             return 0;
         }
-        consume();
+        //consume();
         p->name = id;
-        p->first = instance(id);
+        p->first = instance(str);
         //p->first = instance(id);
         /*if (!isEq()) {
             p->first = 0;
@@ -869,6 +868,7 @@ static Instances *instances(char *id) {
         if (p->rest) {
             p->n = p->rest->n + 1;
         }
+	else p->n = 1;
     }
 
     return p;

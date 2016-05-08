@@ -3,9 +3,13 @@ fun main() {
 }
 
 class foo {
-    x
+    x=1
+    y=2
     foo() {
-	x=1
+        x=1
+    }
+    fun display() {
+        print x
     }
 }
 

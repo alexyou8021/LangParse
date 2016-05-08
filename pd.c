@@ -230,7 +230,6 @@ void myStatement(Statement * s, Fun * p) {
             break;
         }
 	case sConstructor : {
-	    //printf("    start%s:\n", s->className);
 	    Classes *temp = c;
 	    Class *obj;
 	    objName = s->pointerName;
@@ -243,7 +242,9 @@ void myStatement(Statement * s, Fun * p) {
 		temp = temp->rest;
 	    }
             genClass(obj);
-            //obj = obj;
+            /*if (s != NULL) {
+                printf("    call %s\n", s->className);
+            }*/
             /*if(s != NULL) {	
                 if (s->actuals != NULL) {
             	    for (int i = s->actuals->n - 1; i >= 0; i--) {
@@ -251,7 +252,7 @@ void myStatement(Statement * s, Fun * p) {
             		for (int a = 0; a < i; a++) {
        		            actual = actual->rest;
      		    	}
-                	myExpression(actual->first, p, 0);
+                	myExpression(actual->first, p, obj);
               		printf("    push %%r15\n");
             	    }
                 }
@@ -264,7 +265,6 @@ void myStatement(Statement * s, Fun * p) {
             	    }
             	}
             }*/
-	    //printf("    end%s:\n",s->className);
 	    break;	
 	}
         case sPrint : {
@@ -406,9 +406,11 @@ void genFunsClasses(Funs * p) {
 
 void genClass(Class * c) {
     //printf("#%s%d\n", "number of constructors ", c->constructors->n);
+    inClass = 1;
     genInstances(c->instances, c);
     genConstructors(c->constructors, c);
     genFunsClasses(c->funs);
+    inClass = 0;
 }
 
 /*void genClasses(Classes * c) {
