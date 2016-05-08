@@ -98,7 +98,18 @@ void myExpression (Expression * e, Fun * p, Class * c) {
     switch (e->kind) {
         case eVAR : {
             int inside = formal(p, e->varName);
-            if (inside == -1) {
+            if (inside == -1) {		
+	    	if(inClass){
+	    		int len = 0;
+            		while (objName[len++] != 0); 
+	    		char *tempStr = malloc(len+1);
+	    		for(int i=0; i<len;i++){
+				tempStr[i] = objName[i];
+		    	}
+			strcat(tempStr,"_");	
+			strcat(tempStr,e->varName);
+			e->varName = tempStr;	
+	        }
                 set(e->varName);
                 printf("    mov %s, %%r15\n", e->varName);
             }
@@ -211,8 +222,14 @@ void myStatement(Statement * s, Fun * p) {
     if (s != NULL) {
     switch (s->kind) {
         case sAssignment : {
-	    char *tempStr = objName;
+	//name -> obj_name
 	    if(inClass){
+	    	int len = 0;
+            	while (objName[len++] != 0); 
+	    	char *tempStr = malloc(len+1);
+	    	for(int i=0; i<len;i++){
+			tempStr[i] = objName[i];
+	    	}
 		strcat(tempStr,"_");	
 		strcat(tempStr,s->assignName);
 		s->assignName = tempStr;	
@@ -227,11 +244,13 @@ void myStatement(Statement * s, Fun * p) {
             else {
                 printf("    mov %%r15, %d(%%rbp)\n", 8 * (inside + 1));
             }
+	    //s->assignName = savedName;
             break;
         }
 	case sConstructor : {
 	    Classes *temp = c;
 	    Class *obj;
+	    //char *savedName = objName;
 	    objName = s->pointerName;
        	    int len = 0;
             while (s->className[len++] != 0);
@@ -241,11 +260,7 @@ void myStatement(Statement * s, Fun * p) {
  	        }
 		temp = temp->rest;
 	    }
-            genClass(obj);
-            /*if (s != NULL) {
-                printf("    call %s\n", s->className);
-            }*/
-            /*if(s != NULL) {	
+            if(s != NULL) {	
                 if (s->actuals != NULL) {
             	    for (int i = s->actuals->n - 1; i >= 0; i--) {
             	        Actuals *actual = s->actuals;
@@ -256,7 +271,7 @@ void myStatement(Statement * s, Fun * p) {
               		printf("    push %%r15\n");
             	    }
                 }
-		printf("    call %s%d\n",s->className, s->actuals->n);
+		printf("    call %s%d\n", s->className, s->actuals->n);
 	    }
             if (s != NULL) {
             	if (s->actuals != NULL) {
@@ -264,7 +279,10 @@ void myStatement(Statement * s, Fun * p) {
             	        printf("    pop %%r14\n");
             	    }
             	}
-            }*/
+            }
+	    printf("    call %sEND\n", s->className);
+            genClass(obj);
+	    printf("%sEND:\n", s->className);
 	    break;	
 	}
         case sPrint : {
@@ -368,6 +386,7 @@ void genConstructor(Constructor * cn, Class * c) {
     printf("    mov %%rsp, %%rbp\n");
     //Change parameters to myStatement
     //Modify eCALL or add case like eCONST to handle constructor(function) calls
+
     myStatement(cn->body, 0);
     printf("    mov %%rbp, %%rsp\n");
     printf("    pop %%rbp\n");
@@ -376,7 +395,7 @@ void genConstructor(Constructor * cn, Class * c) {
 }
 
 void genConstructors(Constructors * cn, Class * c) {
-    if (cn->n == 0) {
+    if (cn == 0) {
         //printf("#no constructors\n");
         return;
     }
@@ -386,6 +405,18 @@ void genConstructors(Constructors * cn, Class * c) {
 }
 
 void genFunClass(Fun * p) {
+    if(inClass){
+                int len = 0;
+            	while (objName[len++] != 0); 
+	    	char *tempStr = malloc(len+1);
+	    	for(int i=0; i<len;i++){
+			tempStr[i] = objName[i];
+	    	}
+		strcat(tempStr,"_");	
+		strcat(tempStr,p->name);
+		p->name = tempStr;	
+    }
+    p->name = funcRename(p->name);
     printf("    .global %s\n", p->name);
     printf("%s:\n", p->name);
     printf("    push %%rbp\n");
@@ -406,8 +437,12 @@ void genFunsClasses(Funs * p) {
 
 void genClass(Class * c) {
     //printf("#%s%d\n", "number of constructors ", c->constructors->n);
+    char *savedName = objName;
     inClass = 1;
+	printf("#%s\n",objName);
     genInstances(c->instances, c);
+	objName = savedName;
+	printf("#%s\n",objName);
     genConstructors(c->constructors, c);
     genFunsClasses(c->funs);
     inClass = 0;

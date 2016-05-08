@@ -911,6 +911,7 @@ static Constructor *constructor(char *id) {
         if (strncmp(name, id, len) != 0) {
             return 0;
         }
+	p->name = name;
         consume();
 
         if (!isLeft()) {

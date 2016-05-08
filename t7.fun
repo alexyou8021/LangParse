@@ -5,7 +5,7 @@ fun main() {
 }
 
 class foo {
-    x=0
+    x=3
     foo() {
         x=1
     }

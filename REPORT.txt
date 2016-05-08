@@ -1,13 +1,48 @@
 Contribution of each team member:
 
 
+
 What did you propose to do?
 
+We proposed to implement classes so that someone would be able to define their 
+own classes in the fun language and create instances of those classes. Classes
+were supposed to have 0 or more constructors with different numbers of 
+parameters, any number of uniquely named instance variables, and functions with
+any number of parameters.
 
-what did you actually do?
+
+What did you actually do?
+
+We implemented classes so that they could be defined with the following format:
+class className {
+    //Any instance variables
+    x;
+    y = 1
+    //Any constructors
+    className() {
+    }
+    //Any functions
+    fun functionName() {
+    }
+}
 
 
 What was difficult?
 
+It was difficult to modify an existing interface to fit a very different need.
+The parser essentially had to process the classes while it was processing the
+functions, even though the functions were returned separately from the classes.
+This meant that our solution was not as elegant in order to add this extra
+functionality.
+
 
 What did you learn?
+
+The biggest lessons from this were how to plan and how to test large projects.
+We learned that it is valuable to thoroughly plan out complicated interfaces
+ahead of time. We had a couple of set backs because our implementation was 
+flawed from the planning stage. It is also important that the tests get 
+gradually harder as they go on. This is important because it allows for someone
+to see the progress gradually as each of the tests are passed. It shows that 
+one feature works, so that the next test is able to build upon that and 
+demonstrate how another feature works.
