@@ -14,7 +14,7 @@ Funs *p;
 Classes *c;
 int inClass = 0;
 int inFun = 0;
-char *objName;
+char *objName = 0;
 
 //Struct
 struct Entry {
@@ -253,9 +253,9 @@ void myStatement(Statement * s, Fun * p, Constructor *cn) {
     switch (s->kind) {
         case sAssignment : {
 	    if(inClass){
-	    	int len = 0;
-            	while (objName[len++] != 0); 
-	    	char *tempStr = malloc(len+1);
+	    int len = 0;
+            while (objName[len++] != 0); 
+	    char *tempStr = malloc(len+1);
 		strcpy(tempStr, objName);
 		strcat(tempStr,"_");	
 		strcat(tempStr,s->assignName);
@@ -504,6 +504,20 @@ void genClass(Class * c, char * obj) {
     genFunsClasses(c->funs, obj);
     inFun = 0;
     inClass = 0;
+
+    int needsDefault = 1;
+    Constructors *p = c->constructors;
+    while(p != 0) {
+       if(p->first->params == 0)
+          needsDefault = 0;
+       p = p->rest;
+    }
+
+    if(needsDefault) {
+        printf("    .global %s\n", obj);
+        printf("%s_%s%d:\n", obj, c->name, 0);
+        printf("    ret\n");
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -516,18 +530,18 @@ int main(int argc, char *argv[]) {
     struct Cla *temp = (struct Cla *) malloc(sizeof(struct Cla));
     temp = classTable;
     /*
-    int def = 0;
+    int needsDefault = 1;
     Constructors *p = obj->constructors;
     if(p == 0)
-        def = 1;
+        needsDefault = 1;
     else {
         while(p != 0) {
         if(p->first->params == 0)
-           def = 1;
+           needsDefault = 0;
            p = p->rest;
         }
-    }
-    */
+    }*/
+    
 
     //temp = classTable
     while (temp != 0) {

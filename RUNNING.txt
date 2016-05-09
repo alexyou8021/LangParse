@@ -54,3 +54,4 @@ t4-t5 test that our parser correctly reads classes
 t6-tb test that our program handles object instantiation and instance and function usage with classes with many instances, constructors and functions
 tc tests the default constructor
 td tests multiple objects
+te tests for generation of default constructors
