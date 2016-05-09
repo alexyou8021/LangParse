@@ -86,7 +86,6 @@ struct Statement {
             char* className;
             Actuals *actuals;
             char* pointerName;
-            //Constructor *constructor;
         };
         Expression *printValue;
         struct {

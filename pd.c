@@ -13,8 +13,9 @@ int finishedCount = 0;
 Funs *p;
 Classes *c;
 int inClass = 0;
+int inFun = 0;
 char *objName;
-int numActuals = 0;
+//int numActuals = 0;
 
 //Struct
 struct Entry {
@@ -103,12 +104,32 @@ int formal(Fun * p, char * s) {
     return -1;
 }
 
+int conFormal(Constructor * p, char *s) {
+    if ((p != NULL)/* || (p != 0)*/) {
+        if (p->formals != NULL) {
+            Formals *myFormal = p->formals;
+            for (int i = 0; i < p->formals -> n; i++) {
+                if (strcmp(s, myFormal->first) == 0) {
+                    return (p->formals->n) - (myFormal->n) + 1;
+                }
+                myFormal = myFormal->rest;
+            }
+        }
+    }
+    return -1;
+}
+    
+
 //Handles expression enums
-void myExpression (Expression * e, Fun * p, Class * c) {
+void myExpression (Expression * e, Fun * p, Class * c, Constructor * cn) {
     if (e != NULL) {
     switch (e->kind) {
         case eVAR : {
             int inside = formal(p, e->varName);
+            if ((!inClass & !inFun) | (inClass & inFun))
+                inside = formal(p, e->varName);
+            else
+                inside = conFormal(cn, e->varName);
             if (inside == -1) {		
 	    	if(inClass){
 	    		int len = 0;
@@ -140,57 +161,57 @@ void myExpression (Expression * e, Fun * p, Class * c) {
         }
         case ePLUS : {
             printf("    push %%r13\n");
-            myExpression(e->left, p, 0);
+            myExpression(e->left, p, c, cn);
             printf("    pop %%r13\n");
             printf("    mov %%r15, %%r13\n");
             printf("    push %%r13\n");
-            myExpression(e->right, p, 0);
+            myExpression(e->right, p, c, cn);
             printf("    pop %%r13\n");
             printf("    add %%r13, %%r15\n");
             break;
         }
         case eMUL : {
             printf("    push %%r13\n");
-            myExpression(e->left, p, 0);
+            myExpression(e->left, p, c, cn);
             printf("    pop %%r13\n");
             printf("    mov %%r15, %%r13\n");
             printf("    push %%r13\n");
-            myExpression(e->right, p, 0);
+            myExpression(e->right, p, c, cn);
             printf("    pop %%r13\n");
             printf("    imul %%r13, %%r15\n");
             break;
         }
         case eEQ : {
-            myExpression(e->left, p, 0);
+            myExpression(e->left, p, c, cn);
             printf("    mov %%r15, %%r13\n");
-            myExpression(e->right, p, 0);
+            myExpression(e->right, p, c, cn);
             printf("    cmp %%r13, %%r15\n");
             printf("    setz %%r15b\n");
             printf("    movzx %%r15b, %%r15\n");
             break;
         }
         case eNE : {
-            myExpression(e->left, p, 0);
+            myExpression(e->left, p, c, cn);
             printf("    mov %%r15, %%r13\n");
-            myExpression(e->right, p, 0);
+            myExpression(e->right, p, c, cn);
             printf("    cmp %%r13, %%r15\n");
             printf("    setnz %%r15b\n");
             printf("    movzx %%r15b, %%r15\n");
             break;
         }
         case eLT : {
-            myExpression(e->left, p, 0);
+            myExpression(e->left, p, c, cn);
             printf("    mov %%r15, %%r13\n");
-            myExpression(e->right, p, 0);
+            myExpression(e->right, p, c, cn);
             printf("    cmp %%r15, %%r13\n");
             printf("    setl %%r15b\n");
             printf("    movzx %%r15b, %%r15\n");
             break;
         }
         case eGT : {
-            myExpression(e->left, p, 0);
+            myExpression(e->left, p, c, cn);
             printf("    mov %%r15, %%r13\n");
-            myExpression(e->right, p, 0);
+            myExpression(e->right, p, c, cn);
             printf("    cmp %%r15, %%r13\n");
             printf("    setg %%r15b\n");
             printf("    movzx %%r15b, %%r15\n");
@@ -204,7 +225,7 @@ void myExpression (Expression * e, Fun * p, Class * c) {
                 for (int a = 0; a < i; a++) {
                     actual = actual->rest;
                 }
-                myExpression(actual->first, p, 0);
+                myExpression(actual->first, p, c, cn);
                 printf("    push %%r15\n");
             }
             }
@@ -229,7 +250,7 @@ void myExpression (Expression * e, Fun * p, Class * c) {
 }
    
 //Handles statement enums
-void myStatement(Statement * s, Fun * p) {
+void myStatement(Statement * s, Fun * p, Constructor *cn) {
     if (s != NULL) {
     switch (s->kind) {
         case sAssignment : {
@@ -245,7 +266,7 @@ void myStatement(Statement * s, Fun * p) {
 		strcat(tempStr,s->assignName);
 		s->assignName = tempStr;	
 	    }
-            myExpression(s->assignValue, p, 0);
+            myExpression(s->assignValue, p, 0, cn);
             int inside = formal(p, s->assignName);
             if (inside == -1) {
                 set(s->assignName);
@@ -271,23 +292,24 @@ void myStatement(Statement * s, Fun * p) {
  	        }
 		temp = temp->rest;
 	    }
-            if(s != NULL) {	
+            if(s != NULL) {
                 if (s->actuals != NULL) {
             	    for (int i = s->actuals->n - 1; i >= 0; i--) {
             	        Actuals *actual = s->actuals;
             		for (int a = 0; a < i; a++) {
+                            //printf("#%d\n", i);
        		            actual = actual->rest;
      		    	}
-                	myExpression(actual->first, p, obj);
+                	myExpression(actual->first, p, obj, cn);
               		printf("    push %%r15\n");
             	    }
                 }
                 if (s->actuals == NULL) {
-                    numActuals = 0;
+//                    numActuals = 0;
 		    printf("    call %s_%s%d\n", objName, s->className, 0);
                 }
                 else {
-                    numActuals = s->actuals->n;
+//                    numActuals = s->actuals->n;
 		    printf("    call %s_%s%d\n", objName, s->className, s->actuals->n);
                 }
 	    }
@@ -326,7 +348,7 @@ void myStatement(Statement * s, Fun * p) {
 	    break;	
 	}
         case sPrint : {
-            myExpression(s->printValue, p, 0);
+            myExpression(s->printValue, p, 0, cn);
             printf("    mov $p4_format, %%rdi\n");
             printf("    mov %%r15, %%rsi\n");
             printf("    mov $0, %%rax\n");
@@ -334,17 +356,17 @@ void myStatement(Statement * s, Fun * p) {
             break;
         }
         case sIf : {
-            myExpression(s->ifCondition, p, 0);
+            myExpression(s->ifCondition, p, 0, cn);
             int elseTemp = elseCount;
             int completeTemp = completeCount;
             elseCount++;
             completeCount++;
             printf("    cmp $0, %%r15\n");
             printf("%s%d\n", "    je else", elseTemp);
-            myStatement(s->ifThen, p);
+            myStatement(s->ifThen, p, cn);
             printf("%s%d\n", "    jmp complete", completeTemp);
             printf("%s%d%s\n", "    else", elseTemp, ":");
-            myStatement(s->ifElse, p);
+            myStatement(s->ifElse, p, cn);
             printf("%s%d%s\n", "    complete", completeTemp, ":");
             break;
         }
@@ -354,10 +376,10 @@ void myStatement(Statement * s, Fun * p) {
             againCount++;
             finishedCount++;
             printf("%s%d%s\n", "    again", againTemp, ":");
-            myExpression(s->whileCondition, p, 0);
+            myExpression(s->whileCondition, p, 0, cn);
             printf("    cmp $0, %%r15\n");
             printf("%s%d\n", "    je finished", finishedTemp);
-            myStatement(s->whileBody, p);
+            myStatement(s->whileBody, p, cn);
             printf("%s%d\n", "    jmp again", againTemp);
             printf("%s%d%s\n", "    finished", finishedTemp, ":");
             break;
@@ -365,13 +387,13 @@ void myStatement(Statement * s, Fun * p) {
         case sBlock : {
             Block *current = s->block;
             while (current != NULL) {
-                myStatement(current->first, p);
+                myStatement(current->first, p, cn);
                 current = current->rest;
             }
             break;
         }
         case sReturn : {
-            myExpression(s->returnValue, p, 0);
+            myExpression(s->returnValue, p, 0, cn);
             printf("    mov %%rbp, %%rsp\n");
             printf("    pop %%rbp\n");
             printf("    mov $0,%%rax\n");
@@ -390,7 +412,7 @@ void genFun(Fun * p) {
     printf("%s:\n", rename);
     printf("    push %%rbp\n");
     printf("    mov %%rsp, %%rbp\n");
-    myStatement(p->body, p);
+    myStatement(p->body, p, 0);
     printf("    mov %%rbp, %%rsp\n");
     printf("    pop %%rbp\n");
     printf("    mov $0,%%rax\n");
@@ -409,7 +431,7 @@ void genFuns(Funs * p) {
 }*/
 
 void genInstance(Instance * i, Class * c, char * obj) {
-    myStatement(i->line, 0);
+    myStatement(i->line, 0, 0);
 }
 
 void genInstances(Instances * i, Class * c, char * obj) {
@@ -424,6 +446,12 @@ void genConstructor(Constructor * cn, Class * c, char * obj) {
     char *fullName = malloc(size);
     strcpy(fullName, cn->name);
     char* fullActuals = malloc(1);
+    int numActuals = 0;
+    Formals *f = cn->formals;
+    while (f != 0) {
+        numActuals++;
+        f = f->rest;
+    }
     fullActuals[0] = numActuals + '0';
     strcat(fullName, fullActuals);
     printf("    .global %s\n", fullName);
@@ -433,7 +461,7 @@ void genConstructor(Constructor * cn, Class * c, char * obj) {
     //Change parameters to myStatement
     //Modify eCALL or add case like eCONST to handle constructor(function) calls
 
-    myStatement(cn->body, 0);
+    myStatement(cn->body, 0, cn);
     printf("    mov %%rbp, %%rsp\n");
     printf("    pop %%rbp\n");
     printf("    mov $0,%%rax\n");
@@ -479,7 +507,7 @@ void genFunClass(Fun * p, char * obj) {
     printf("%s:\n", fullName);
     printf("    push %%rbp\n");
     printf("    mov %%rsp, %%rbp\n");
-    myStatement(p->body, p);
+    myStatement(p->body, p, 0);
     printf("    mov %%rbp, %%rsp\n");
     printf("    pop %%rbp\n");
     printf("    mov $0,%%rax\n");
@@ -497,7 +525,9 @@ void genClass(Class * c, char * obj) {
     inClass = 1;
     genInstances(c->instances, c, obj);
     genConstructors(c->constructors, c, obj);
+    inFun = 1;
     genFunsClasses(c->funs, obj);
+    inFun = 0;
     inClass = 0;
 }
 

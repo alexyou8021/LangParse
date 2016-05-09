@@ -48,3 +48,5 @@ class foo {
         x=a
         y=b
         z=c
+    }
+}

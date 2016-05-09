@@ -1,5 +1,8 @@
 fun main() {
     obj = new foo()
+    print obj_x
+    print obj_y
+    print obj_z
 }
 
 class foo {
