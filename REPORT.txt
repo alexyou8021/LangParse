@@ -33,7 +33,7 @@ and the instances and methods of the object are in the format of:
     obj_instance
     obj_method()
 
-Restrictions: the instances, if any, must come before the constructors, if any,
+Restrictions: The instances, if any, must come before the constructors, if any,
 which must come before the functions, if any, within a class definition. All
 previous restrictions of the fun language still hold with regards to naming and
 syntax.

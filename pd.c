@@ -15,7 +15,6 @@ Classes *c;
 int inClass = 0;
 int inFun = 0;
 char *objName;
-//int numActuals = 0;
 
 //Struct
 struct Entry {
@@ -25,7 +24,6 @@ struct Entry {
 struct Cla { 
     struct Cla *next;
     char *objName;
-    //Constructor *constructor;
     Class *class;
     int n;
 } Cla;
@@ -90,7 +88,7 @@ char* funcRename(char * var) {
 
 //Returns the index of the variable on the stack if it's local, or -1 if it's global.
 int formal(Fun * p, char * s) {
-    if ((p != NULL)/* || (p != 0)*/) {
+    if (p != NULL) {
         if (p->formals != NULL) {
             Formals *myFormal = p->formals;
             for (int i = 0; i < p->formals -> n; i++) {
@@ -105,7 +103,7 @@ int formal(Fun * p, char * s) {
 }
 
 int conFormal(Constructor * p, char *s) {
-    if ((p != NULL)/* || (p != 0)*/) {
+    if (p != NULL) {
         if (p->formals != NULL) {
             Formals *myFormal = p->formals;
             for (int i = 0; i < p->formals -> n; i++) {
@@ -254,14 +252,11 @@ void myStatement(Statement * s, Fun * p, Constructor *cn) {
     if (s != NULL) {
     switch (s->kind) {
         case sAssignment : {
-	//name -> obj_name
 	    if(inClass){
 	    	int len = 0;
             	while (objName[len++] != 0); 
 	    	char *tempStr = malloc(len+1);
-	    	for(int i=0; i<len;i++){
-			tempStr[i] = objName[i];
-	    	}
+		strcpy(tempStr, objName);
 		strcat(tempStr,"_");	
 		strcat(tempStr,s->assignName);
 		s->assignName = tempStr;	
@@ -276,13 +271,11 @@ void myStatement(Statement * s, Fun * p, Constructor *cn) {
             else {
                 printf("    mov %%r15, %d(%%rbp)\n", 8 * (inside + 1));
             }
-	    //s->assignName = savedName;
             break;
         }
 	case sConstructor : {
 	    Classes *temp = c;
 	    Class *obj;
-	    //char *savedName = objName;
 	    objName = s->pointerName;
        	    int len = 0;
             while (s->className[len++] != 0);
@@ -297,21 +290,36 @@ void myStatement(Statement * s, Fun * p, Constructor *cn) {
             	    for (int i = s->actuals->n - 1; i >= 0; i--) {
             	        Actuals *actual = s->actuals;
             		for (int a = 0; a < i; a++) {
-                            //printf("#%d\n", i);
        		            actual = actual->rest;
-     		    	}
-                	myExpression(actual->first, p, obj, cn);
-              		printf("    push %%r15\n");
-            	    }
+                        }
+                        myExpression(actual->first, p, obj, cn);
+              	        printf("    push %%r15\n");
+                    }
                 }
-                if (s->actuals == NULL) {
-//                    numActuals = 0;
-		    printf("    call %s_%s%d\n", objName, s->className, 0);
-                }
+                /*int def = 0;
+                Constructors *p = obj->constructors;
+                if(p == 0)
+                    def = 1;
                 else {
-//                    numActuals = s->actuals->n;
-		    printf("    call %s_%s%d\n", objName, s->className, s->actuals->n);
-                }
+                    while(p != 0) {
+                        if (p->first->params == 0)
+                            def = 1;
+                        p = p->rest;
+                    }
+                }*/
+	        if(obj->constructors != 0) {
+                    if (s->actuals == NULL) {
+		        printf("    call %s_%s%d\n", objName, s->className, 0);
+                    }
+                    else {
+                        printf("    call %s_%s%d\n", objName, s->className, s->actuals->n);
+                    }
+		}
+                else {
+                    inClass = 1;
+                    genInstances(obj->instances, obj, objName);
+		    inClass = 0;
+		}
 	    }
             if (s != NULL) {
             	if (s->actuals != NULL) {
@@ -319,23 +327,8 @@ void myStatement(Statement * s, Fun * p, Constructor *cn) {
             	        printf("    pop %%r14\n");
             	    }
             	}
-            }/*
-	    printf("    call %sEND\n", s->className);
-            genClass(obj);
-	    printf("%sEND:\n", s->className);*/
-	    /*inClass = 1;
-	    genInstances(obj->instances,obj);
-	    genFunsClasses(obj->funs);
-	    inClass = 0;*/
-	    /*struct Constr *currentConstr = malloc(sizeof(struct Constr));
-	    currentConstr->next = constrTable;
-	    currentConstr->objName = objName;
-	    currentConstr->class = obj;
-            if (s->actuals == 0)
-                currentConstr->n = 0;
-            else
-	        currentConstr->n = s->actuals->n; 
-            constrTable = currentConstr;*/
+            }
+
 	    struct Cla *currentClass = malloc(sizeof(struct Cla));
 	    currentClass->next = classTable;
 	    currentClass->objName = objName;
@@ -426,10 +419,6 @@ void genFuns(Funs * p) {
     genFuns(p->rest);
 }
 
-/*void myConstructor(Constructor * cn, Class * c) {
-
-}*/
-
 void genInstance(Instance * i, Class * c, char * obj) {
     myStatement(i->line, 0, 0);
 }
@@ -458,9 +447,6 @@ void genConstructor(Constructor * cn, Class * c, char * obj) {
     printf("%s_%s:\n", obj, fullName);
     printf("    push %%rbp\n");
     printf("    mov %%rsp, %%rbp\n");
-    //Change parameters to myStatement
-    //Modify eCALL or add case like eCONST to handle constructor(function) calls
-
     myStatement(cn->body, 0, cn);
     printf("    mov %%rbp, %%rsp\n");
     printf("    pop %%rbp\n");
@@ -470,41 +456,30 @@ void genConstructor(Constructor * cn, Class * c, char * obj) {
 
 void genConstructors(Constructors * cn, Class * c, char * obj) {
     if (cn == 0) {
-        //printf("#no constructors\n");
         return;
     }
-    //printf("#%s%d\n", "number of constructors ", cn->n);
     genConstructor(cn->first, c, obj);
     genConstructors(cn->rest, c, obj);
 }
 
 void genFunClass(Fun * p, char * obj) {
     if(inClass){
-                int len = 0;
-            	while (objName[len++] != 0); 
-	    	char *tempStr = malloc(len+1);
-	    	for(int i=0; i<len;i++){
-			tempStr[i] = objName[i];
-	    	}
-		strcat(tempStr,"_");	
-		strcat(tempStr,p->name);
-		p->name = tempStr;	
+        int len = 0;
+        while (objName[len++] != 0); 
+        char *tempStr = malloc(len+1);
+	strcpy(tempStr,objName);
+        strcat(tempStr,"_");	
+        strcat(tempStr,p->name);
+        p->name = tempStr;	
     }
     char *var = funcRename(p->name);
     size_t size = strlen(var) + 1;
     char *fullName = malloc(size);
     strcpy(fullName, var);
-    //char* fullActuals = malloc(1);
-    //fullActuals[0] = numActuals + '0';
-    
-    
-    //char* fullActuals = malloc(strlen(numActuals) + 1);
-    //strcpy(fullActuals, numActuals);
-    //fullActuals[strlen(numActuals)] = '0';
-
-    //strcat(fullName, fullActuals);
     printf("    .global %s\n", fullName);
     printf("%s:\n", fullName);
+    printf("    .global %s\n", p->name);
+    printf("%s:\n", p->name);
     printf("    push %%rbp\n");
     printf("    mov %%rsp, %%rbp\n");
     myStatement(p->body, p, 0);
@@ -531,35 +506,15 @@ void genClass(Class * c, char * obj) {
     inClass = 0;
 }
 
-/*void genClasses(Classes * c) {
-    if (c == 0){
-        return;
-    }
-    //printf("#%s%d\n", "number of instances ", c->first->instances->n);
-    genClass(c->first);
-    genClasses(c->rest);
-}*/
-
 int main(int argc, char *argv[]) {
-/*    Classes *c =parseC();
-    if(c==0)
-        printf("#no classes\n");
-*/        //Add Classes pointer set to other parse function to receive all classes
-    classTable = 0;//(struct Cla *) malloc(sizeof(struct Cla));
+    classTable = 0;
     p = parseF();
     c = parseC();
-    //c = c;
-    //printf("#%s%d\n", "number of classes ", c->n);
-    //printf("#%s%s\n", "name of class ", c->first->name);
-
-    /*if(c==0)
-        printf("#no classes\n");
-    */printf("    .text\n");
+    printf("    .text\n");
     table = (struct Entry *) malloc(sizeof(struct Entry));
     genFuns(p);
     struct Cla *temp = (struct Cla *) malloc(sizeof(struct Cla));
     temp = classTable;
-    //temp = temp;
     while (temp != 0) {
         genClass(temp->class, temp->objName);
         temp = temp->next;
@@ -578,6 +533,5 @@ int main(int argc, char *argv[]) {
         printf(": .quad 0\n");
         table = table->next;
     }
-    if (0) genClass(0, 0);
     return 0;
 }

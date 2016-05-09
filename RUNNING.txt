@@ -3,11 +3,34 @@ All tests are created in .fun files and implement the fun language as defined
 earlier in the year.
 The expected output is found in .ok files which are compared to .out files when
 the tests are run, and the result is displayed in .diff files.
+
+To compile:
+
+    - make
+
+To compile clean version:
+
+    - make
+
+To test:
+
+    - make test
+
+To test clean version:
+
+    - make clean test
+
+Files:
+
+    - pd.c - the main program
+    - parser.c - the parser (changed to accomodate for classes)
+    - t0.fun through tc.fun - test cases in fun language
+    - t0.ok through tc.ok - expected outputs for test cases
+
 We implemented classes so that they could be defined with the following format:
 class className {
     //Any instance variables
-    x;
-    y = 1
+    x = 1
     //Any constructors
     className() {
     }
@@ -26,4 +49,8 @@ and
 
 Explain why your supplied tests illustrate that your project works
 
-
+t0-t3 test the correct implementation of p4
+t4-t5 test that our parser correctly reads classes
+t6-tb test that our program handles object instantiation and instance and function usage with classes with many instances, constructors and functions
+tc tests the default constructor
+td tests multiple objects

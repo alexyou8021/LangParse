@@ -540,7 +540,6 @@ static Statement *statement(void) {
                 error();
             }
             consume();
-            //p->actuals = 0;
             p->actuals = actuals();
 
             if (!isRight()) {
@@ -671,34 +670,10 @@ static Formals *formals() {
 static Constructors *constructors(char *id);
 static Instances *instances(char *id);
 static Funs *funs();
-//void funs();
 
 /* fun <id> ( <formals> ) <body> */
 static Fun *fun() {
-
-    /*if (isClass()) {
-        consume();
-
-        if (!isId())
-            error();
-        char *id = getId();
-        consume();
-
-        if (!isLeftBlock())
-            error();
-        consume();
-
-        instances(id);
-        constructors(id);
-        funs();
-
-        if (!isRightBlock())
-            error();
-        consume();
-
-        return fun();
-    }
-    else*/ if (isFun()) {
+    if (isFun()) {
         consume();
 
         Fun *p = NEW(Fun);
@@ -727,21 +702,12 @@ static Fun *fun() {
     }
 }
 
-//static Classes *classes();
 static Class *class();
 
 /* <fun> <fun> <fun> ... */
 static Funs *funs() {
 //void funs() {
     while (isClass()) {
-        /*Classes *last = classes;
-        while (classes != 0 && last->rest != 0) {
-            last = last->rest;
-        }*/
-        /*if (classes == 0) {
-            classes = NEW(Classes);
-        }*/
-        //classes = NEW(Classes);
         Class *first = NEW(Class);
         first = class();
         if (first) {
@@ -755,23 +721,7 @@ static Funs *funs() {
             }
             classes = q;
         }
-        //class();
     }
-/*	while(isClass()||isFun()){
-    if (isClass()){
-        Classes *q = NEW(Classes);
-        q->first = class();
-        q->rest = classes;
-        if (q->rest) {
-            q->n = q->rest->n + 1;
-        } else {
-v
-v
-v
-            q->n = 1;
-        }
-        classes = q;
-    }*/
     Funs *p = 0;
     if (isFun()) {
         Fun *first = fun();
@@ -787,23 +737,6 @@ v
             }
         }
     }
-    /*if (isFun()) {
-        Fun *first = fun();
-
-        if (first) {
-            p = NEW(Funs);
-            p->first = first;
-            p->rest = functions;
-            if (p->rest) {
-                p->n = p->rest->n + 1;
-            } else {
-                p->n = 1;
-            }
-        }
-    }*/
-  /*  if (!isEnd())
-        error();
-*/
     return p;
 }
 
@@ -814,7 +747,6 @@ Funs *parseF() {
     int x = setjmp(escape);
     if (x == 0) {
         return funs();
-        //return functions;
     } else {
         return 0;
     }
@@ -832,11 +764,8 @@ static Instance *instance(char *id) {
 /* [<id> [, <instances>]] */
 static Instances *instances(char *id) {
     Instances *p = 0;
-    //p->n = 0;
     if (isId()) {
         p = NEW(Instances);
-
-        //p->first = instance();
 
         char *str = getId();
         int len = 0;
@@ -845,25 +774,13 @@ static Instances *instances(char *id) {
         if (strncmp(str, id, len) == 0 || strncmp(str, "fun", len)==0) {
             return 0;
         }
-        //consume();
         p->name = id;
         p->first = instance(str);
-        //p->first = instance(id);
-        /*if (!isEq()) {
-            p->first = 0;
-        }
-        else {
-            consume();
-            p->first = expression();
-        }*/
 
         if (isSemi()) {
             consume();
         }
 
-        //p->n = 1;
-        //p->rest = 0;
-//add instances to actuals
         p->rest = instances(id);
         if (p->rest) {
             p->n = p->rest->n + 1;
@@ -876,34 +793,8 @@ static Instances *instances(char *id) {
 
 /*<id> ( <formals> ) { <body> }*/
 static Constructor *constructor(char *id) {
-    /*if (isFun()) {
-        consume();
-
-        if (!isId())
-            error();
-        getId();
-        consume();
-
-        if (!isLeft())
-            error();
-        consume();
-
-        formals();
-
-        if (!isRight())
-             error();
-        consume();
-
-        statement();
-
-        return constructor(id);
-    }
-    else*/ if (isId()) {
+    if (isId()) {
         Constructor *p = NEW(Constructor);
-/*        if (!isNew())
-            error();
-        consume();
-*/
         char* name = getId();
         int len = 0;
         while (name[len++] != 0);
@@ -930,9 +821,6 @@ static Constructor *constructor(char *id) {
         if (p->formals != 0) {
             p->params = p->formals->n;
         }
-	/*char *varNum = p->params+"0";
-	strcpy(p->name, name);
-	strcat(p->name, varNum);*/
 	p->body = statement();
 	return p;
 	}
@@ -940,25 +828,9 @@ static Constructor *constructor(char *id) {
 }
 static Constructors *constructors(char *id) {
     Constructors *p = 0;
-    //p->n = 0;
-
     if (isId()) {
         p = NEW(Constructors);
 	p->first = constructor(id);
-        //p->first = instance();
-
-        //p->first = instance(id);
-        /*if (!isEq()) {
-            p->first = 0;
-        }
-        else {
-            consume();
-            p->first = expression();
-        }*/
-
-        //p->n = 1;
-        //p->rest = 0;
-//add instances to actuals
         p->rest = constructors(id);
         if (p->rest) {
             p->n = p->rest->n + 1;
@@ -979,7 +851,6 @@ static Class *class() {
 	    error();
 	consume();	
 	p->instances = instances(p->name);
-	printf("#%d\n",p->instances->n);
         p->constructors = constructors(p->name); 
         p->funs = funs();
 
@@ -989,82 +860,13 @@ static Class *class() {
 
         return p;
     }
-    /*else if (isFun()) {
-        consume();
-
-        if (!isId())
-            error();
-        getId();
-        consume();
-
-        if (!isLeft())
-            error();
-        consume();
-
-        formals();
-
-        if (!isRight())
-             error();
-        consume();
-        
-        if (!isLeftBlock())
-             error();
-        consume();
-
-        statement();
-
-        if (!isRightBlock())
-             error();
-        consume();
-
-        return class();
-    }*/
     else {
         return 0;
     }
 }
 
-/*static Classes *classes() {
-    Classes *p = 0;
-    Class *first = class();
-printf("#looking for a class\n");
-if (first == 0)
-    printf("#class == 0!!!!\n");
-    
-    if (first) {
-        p = NEW(Classes);
-        p->first = first;
-        p->rest = classes();
-        if (p->rest) {
-            p->n = p->rest->n + 1;
-        } else {
-            p->n = 1;
-        }
-    }
-    
-    if(!isEnd())
-        error();
-
-    if (p == 0)
-    printf("#classes == 0!!!!\n");
-
-    return p;
-}*/
-
 Classes *parseC() {
     if (!isEnd()) 
         error();
     return classes;
-    //return 0;
-    /*pos = 0;
-    line = 1;
-    current.kind = tNONE;
-    int x = setjmp(escape);
-    if (x == 0) {
-        return classes();
-    } else {
-        printf("#x==0\n");
-        return 0;
-    }*/
-    //return classes();*/
 }
