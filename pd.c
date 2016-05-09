@@ -463,23 +463,23 @@ void genConstructors(Constructors * cn, Class * c, char * obj) {
 }
 
 void genFunClass(Fun * p, char * obj) {
+    int len = 0;
+    while (obj[len++] != 0); 
+    char *tempStr = malloc(len+1);
     if(inClass){
-        int len = 0;
-        while (objName[len++] != 0); 
-        char *tempStr = malloc(len+1);
-	strcpy(tempStr,objName);
+	strcpy(tempStr,obj);
         strcat(tempStr,"_");	
         strcat(tempStr,p->name);
-        p->name = tempStr;	
+        //p->name = tempStr;	
     }
-    char *var = funcRename(p->name);
+    char *var = funcRename(tempStr);//p->name);
     size_t size = strlen(var) + 1;
     char *fullName = malloc(size);
     strcpy(fullName, var);
     printf("    .global %s\n", fullName);
     printf("%s:\n", fullName);
-    printf("    .global %s\n", p->name);
-    printf("%s:\n", p->name);
+    /*printf("    .global %s\n", p->name);
+    printf("%s:\n", p->name);*/
     printf("    push %%rbp\n");
     printf("    mov %%rsp, %%rbp\n");
     myStatement(p->body, p, 0);
@@ -515,6 +515,21 @@ int main(int argc, char *argv[]) {
     genFuns(p);
     struct Cla *temp = (struct Cla *) malloc(sizeof(struct Cla));
     temp = classTable;
+    /*
+    int def = 0;
+    Constructors *p = obj->constructors;
+    if(p == 0)
+        def = 1;
+    else {
+        while(p != 0) {
+        if(p->first->params == 0)
+           def = 1;
+           p = p->rest;
+        }
+    }
+    */
+
+    //temp = classTable
     while (temp != 0) {
         genClass(temp->class, temp->objName);
         temp = temp->next;
