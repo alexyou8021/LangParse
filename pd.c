@@ -296,17 +296,6 @@ void myStatement(Statement * s, Fun * p, Constructor *cn) {
               	        printf("    push %%r15\n");
                     }
                 }
-                /*int def = 0;
-                Constructors *p = obj->constructors;
-                if(p == 0)
-                    def = 1;
-                else {
-                    while(p != 0) {
-                        if (p->first->params == 0)
-                            def = 1;
-                        p = p->rest;
-                    }
-                }*/
 	        if(obj->constructors != 0) {
                     if (s->actuals == NULL) {
 		        printf("    call %s_%s%d\n", objName, s->className, 0);
@@ -470,16 +459,13 @@ void genFunClass(Fun * p, char * obj) {
 	strcpy(tempStr,obj);
         strcat(tempStr,"_");	
         strcat(tempStr,p->name);
-        //p->name = tempStr;	
     }
-    char *var = funcRename(tempStr);//p->name);
+    char *var = funcRename(tempStr);
     size_t size = strlen(var) + 1;
     char *fullName = malloc(size);
     strcpy(fullName, var);
     printf("    .global %s\n", fullName);
     printf("%s:\n", fullName);
-    /*printf("    .global %s\n", p->name);
-    printf("%s:\n", p->name);*/
     printf("    push %%rbp\n");
     printf("    mov %%rsp, %%rbp\n");
     myStatement(p->body, p, 0);
@@ -516,6 +502,9 @@ void genClass(Class * c, char * obj) {
     if(needsDefault) {
         printf("    .global %s\n", obj);
         printf("%s_%s%d:\n", obj, c->name, 0);
+        inClass = 1;
+        genInstances(c->instances, c, 0);
+        inClass = 0;
         printf("    ret\n");
     }
 }
@@ -529,21 +518,6 @@ int main(int argc, char *argv[]) {
     genFuns(p);
     struct Cla *temp = (struct Cla *) malloc(sizeof(struct Cla));
     temp = classTable;
-    /*
-    int needsDefault = 1;
-    Constructors *p = obj->constructors;
-    if(p == 0)
-        needsDefault = 1;
-    else {
-        while(p != 0) {
-        if(p->first->params == 0)
-           needsDefault = 0;
-           p = p->rest;
-        }
-    }*/
-    
-
-    //temp = classTable
     while (temp != 0) {
         genClass(temp->class, temp->objName);
         temp = temp->next;

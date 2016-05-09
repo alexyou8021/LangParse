@@ -1,7 +1,7 @@
 Contribution of each team member:
-Rohit:
-Matt:
-Alex:
+Rohit: Handled generating functions, instance variables, and constructors in classes in pd.c
+Matt: Defined the class structure in parser.h and handled most of the parsing in parser.c
+Alex: Debugged parser.c and finished implementation of class storage. Handled variable naming in pd.c
 
 
 What did you propose to do?
@@ -31,7 +31,7 @@ Classes are initialized in the format of:
     object = new className(<Parameters>);
 and the instances and methods of the object are in the format of:
     obj_instance
-    obj_method()
+    obj_function()
 
 Restrictions: The instances, if any, must come before the constructors, if any,
 which must come before the functions, if any, within a class definition. All
