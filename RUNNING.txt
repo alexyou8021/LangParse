@@ -52,5 +52,5 @@ Explain why your supplied tests illustrate that your project works
 t0-t3 test the correct implementation of p4
 t4-t5 test that our parser correctly reads classes
 t6-tb test that our program handles object instantiation and instance and function usage with classes with many instances, constructors and functions
-tc tests the default constructor
+tc tests the default constructor when there are 0 constructors
 td tests multiple objects

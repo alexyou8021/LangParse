@@ -252,10 +252,11 @@ void myStatement(Statement * s, Fun * p, Constructor *cn) {
     if (s != NULL) {
     switch (s->kind) {
         case sAssignment : {
-	    if(inClass){
 	    int len = 0;
-            while (objName[len++] != 0); 
+	    if(objName!=NULL)
+                while (objName[len++] != 0); 
 	    char *tempStr = malloc(len+1);
+	    if(inClass){
 		strcpy(tempStr, objName);
 		strcat(tempStr,"_");	
 		strcat(tempStr,s->assignName);
